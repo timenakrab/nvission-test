@@ -1,0 +1,13 @@
+{
+  "name": "Time-Pai-Ruey",
+  "start_url" : "/",
+  "background_color" : "#ffdab0",
+  "display" : "fullscreen",
+  "icon" : [
+    {
+      "src" : "time-pai-ruey.png",
+      "sizes" : "360x360",
+      "type" : "image/png"
+    }
+  ]
+}
