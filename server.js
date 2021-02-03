@@ -3,7 +3,6 @@ const nextJS = require('next');
 const fs = require('fs');
 const useragent = require('express-useragent');
 const bodyParser = require('body-parser');
-const nvision = require('@nipacloud/nvision');
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = nextJS({ dev });
@@ -37,28 +36,6 @@ app
       res.type('text/plain');
       const fileContent = fs.readFileSync('./robots.txt', 'utf8');
       res.send(fileContent);
-    });
-
-    server.post('/send-to-ml', (req, res) => {
-      const { bs } = req.body.data;
-      const objectDetectionService = nvision.objectDetection({
-        apiKey:
-          'cdb29f355cb4059995e054208c89cf3a667a9ced3a5e2a047d88c5d323a6e4fbf2c99ecfd01496e729446d925d16577aac',
-        streamingKey:
-          'cdb29f355cb4059995e054208a8acf3c372891ed3a0f2a097c88c5d778f6e4f8a9959fcfd64093ef7f106c950b455625ac',
-      });
-      objectDetectionService
-        .predict({
-          rawData: bs,
-        })
-        .then((result) => {
-          console.log(result);
-          res.json({ data: '' });
-        })
-        .catch((err) => {
-          console.log(err.message);
-          res.status(400).json({ err: err.message });
-        });
     });
 
     server.get('*', (req, res) => {
