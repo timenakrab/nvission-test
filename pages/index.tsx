@@ -1,10 +1,21 @@
+import nvision from '@nipacloud/nvision';
+import { NvisionRequest } from '@nipacloud/nvision/dist/models/NvisionRequest';
+import getConfig from 'next/config';
 import React, { useEffect, useState } from 'react';
+import ReactResizeDetector from 'react-resize-detector';
 import styled from 'styled-components';
+
+import { PositionObj } from '../src/type/custom';
+
+const { publicRuntimeConfig } = getConfig();
 
 const Background = styled.div`
   width: 100%;
   height: 100vh;
   background-color: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 `;
 const ButtonSelectFile = styled.label`
   display: flex;
@@ -15,7 +26,7 @@ const ButtonSelectFile = styled.label`
   color: #c0212f;
   background-color: #ffffff;
   border: 1px solid #ced4da;
-  margin: 0px;
+  margin: 0 auto;
   border-radius: 8px;
   cursor: pointer;
   &:hover,
@@ -38,60 +49,18 @@ const InputFile = styled.input`
 const BlockImage = styled.div`
   position: relative;
 `;
-const Canvas = styled.canvas`
+const Canvas = styled.canvas<{ width: number; height: number }>`
   position: absolute;
   top: 0;
   left: 0;
+  width: ${(props) => props.width}px;
+  height: ${(props) => props.height}px;
 `;
-
-const mockResp = [
-  {
-    bounding_box: { bottom: 201, left: 9, right: 38, top: 129 },
-    name: 'person',
-    confidence: 0.9894000291824341,
-    parent: 'human',
-  },
-  {
-    bounding_box: { bottom: 201, left: 67, right: 106, top: 133 },
-    name: 'person',
-    confidence: 0.9958999752998352,
-    parent: 'human',
-  },
-  {
-    bounding_box: { bottom: 201, left: 27, right: 72, top: 131 },
-    name: 'person',
-    confidence: 0.9977999925613403,
-    parent: 'human',
-  },
-  {
-    bounding_box: { bottom: 215, left: 159, right: 218, top: 94 },
-    name: 'person',
-    confidence: 0.9986000061035156,
-    parent: 'human',
-  },
-  {
-    bounding_box: { bottom: 211, left: 124, right: 164, top: 114 },
-    name: 'person',
-    confidence: 0.9991000294685364,
-    parent: 'human',
-  },
-  {
-    bounding_box: { bottom: 227, left: 271, right: 349, top: 105 },
-    name: 'person',
-    confidence: 0.9994000196456909,
-    parent: 'human',
-  },
-  {
-    bounding_box: { bottom: 226, left: 199, right: 270, top: 88 },
-    name: 'person',
-    confidence: 0.9997000098228455,
-    parent: 'human',
-  },
-];
-let reactImageSize = null;
 
 const HomePage = () => {
   const [srcImg, setSrcImage] = useState('/preview.jpg');
+  const [selectedImg, setSelectedImg] = useState(false);
+  const [imgDimension, setImgDimension] = useState({ width: 0, height: 0 });
 
   const imgToBase64 = (url: string): Promise<string> =>
     fetch(url)
@@ -107,70 +76,95 @@ const HomePage = () => {
       );
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const sendToML = (base64: string) => {
-    // const objectDetectionService = nvision.objectDetection({
-    //   apiKey:
-    //     'cdb29f355cb4059995e054208c89cf3a667a9ced3a5e2a047d88c5d323a6e4fbf2c99ecfd01496e729446d925d16577aac',
-    //   streamingKey:
-    //     'cdb29f355cb4059995e054208a8acf3c372891ed3a0f2a097c88c5d778f6e4f8a9959fcfd64093ef7f106c950b455625ac',
+  const canvasRect = (positionObj: PositionObj[]) => {
+    // console.log(positionObj);
+    const canvas = document.querySelector('#preview-canvas') as HTMLCanvasElement;
+    const ctx: CanvasRenderingContext2D = canvas.getContext('2d');
+    console.log('canvas', imgDimension);
+    // ctx.beginPath();
+    // positionObj.forEach((data) => {
+    //   const { bounding_box: box, name } = data;
+    //   ctx.strokeRect(box.left, box.top, 80, 80);
+    //   ctx.font = '12px Arial';
+    //   ctx.fillText(name, box.left, box.top - 4);
     // });
-    // objectDetectionService
-    //   .predict({
-    //     outputCroppedImage: false,
-    //     confidenceThreshold: 0.2,
-    //     rawData: base64,
-    //   })
-    //   .then((result) => {
-    //     console.log(result);
-    //   })
-    //   .catch((err) => {
-    //     console.log(err.message);
-    //   });
+    // ctx.stroke();
 
-    const c = document.getElementById('preview-canvas') as HTMLCanvasElement;
-    const ctx: CanvasRenderingContext2D = c.getContext('2d');
+    // const { bounding_box: box } = positionObj[0];
+    // console.log(box);
+    // console.log('canvas', { imgWidth, imgHeight });
+    // console.log('move', box.top, imgWidth - box.right);
     ctx.beginPath();
-    mockResp.forEach((data) => {
-      const { bounding_box: box, name } = data;
-      ctx.strokeRect(box.left, box.top, 80, 80);
-      ctx.font = '12px Arial';
-      ctx.fillText(name, box.left, box.top - 4);
+    // ctx.moveTo(box.top, imgWidth - box.right);
+    // ctx.lineTo(box.top, box.right);
+    // ctx.lineTo(box.right, box.bottom);
+    // ctx.lineTo(box.bottom, box.left);
+    // ctx.lineTo(box.left, box.top);
+    // ctx.closePath();
+    // ctx.stroke();
+    // positionObj.forEach((data) => {
+    //   const { bounding_box: box } = data;
+    //   ctx.beginPath();
+    //   ctx.moveTo(box.left, box.top);
+    //   ctx.lineTo(box.top, box.right);
+    //   ctx.lineTo(box.right, box.bottom);
+    //   ctx.lineTo(box.bottom, box.left);
+    //   ctx.lineTo(box.left, box.top);
+    //   ctx.closePath();
+    //   ctx.stroke();
+    // });
+  };
+
+  const sendToML = (base64: string): Promise<NvisionRequest> => {
+    const objectDetectionService = nvision.objectDetection({
+      apiKey: publicRuntimeConfig.NVISION_KEY,
     });
-    ctx.stroke();
+    return objectDetectionService.predict({
+      rawData: base64,
+    });
   };
 
   const handleSelectFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if ((event.target as HTMLInputElement).files.length) {
       const file = (event.target as HTMLInputElement).files[0];
       const preview = URL.createObjectURL(file);
-      reactImageSize(preview).then((res) => {
-        console.log(res);
-      });
-      // const { width, height } = await reactImageSize(preview);
-      // console.log({ width, height });
-
       setSrcImage(preview);
+      setSelectedImg(true);
       let base64: string = await imgToBase64(preview);
       base64 = base64.replace(/^data:image\/[a-z]+;base64,/, '');
-      sendToML(base64);
+      try {
+        const positionArr = await sendToML(base64);
+        canvasRect(positionArr.detected_objects);
+      } catch (err) {
+        console.log(err.message);
+      }
     }
   };
 
   useEffect(() => {
-    import('react-image-size').then(async (res) => {
-      reactImageSize = res;
-      console.log(reactImageSize);
-    });
+    if (selectedImg) {
+      console.log('update', imgDimension);
+    }
     return () => {};
-  }, []);
+  }, [selectedImg]);
 
   return (
     <Background>
       <div>
-        <BlockImage>
-          <img src={srcImg} alt="preview" />
-          <Canvas id="preview-canvas" />
-        </BlockImage>
+        <ReactResizeDetector
+          handleWidth
+          onResize={(width, height) => {
+            setImgDimension({
+              width,
+              height: height - 4,
+            });
+          }}
+        >
+          <BlockImage>
+            <img src={srcImg} alt="preview" />
+            <Canvas width={imgDimension.width} height={imgDimension.height} id="preview-canvas" />
+          </BlockImage>
+        </ReactResizeDetector>
         <ButtonSelectFile htmlFor="file-image">
           <Icon className="far fa-image" />
           <span>Select Image</span>
